@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">appCIE</string>
+    <string name="back">Back</string>
+    <string name="info">-- info --</string>
+    <string name="home">Home</string>
+    <string name="webview">WebView</string>
+    <string name="qr_code">QR Code</string>
+    <string name="appoggia_la_cie">Appoggia la CIE</string>
+    <string name="scegli_la_modalit_di_autenticazione_che_preferisci">Scegli la modalità di autenticazione che preferisci</string>
+    <string name="app_cie">app CIE</string>
+    <string name="clicca_qui_per_il_codice_sorgente">Clicca qui per il codice sorgente</string>
+    <string name="torna_al_menu">Torna al menu</string>
+    <string name="errore">Errore?</string>
+    <string name="crediti">Crediti</string>
+    <string name="tutti_i_dettagli_dei_crediti_si_possono_trovare_nel_readme_del_codice_sorgente">Tutti i dettagli dei crediti si possono trovare nel readme del codice sorgente</string>
+</resources>
