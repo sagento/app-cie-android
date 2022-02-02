@@ -28,3 +28,15 @@ appcie/build/kotlinToolingMetadata
 appcie/build/outputs/sdk-dependencies
 appcie/build/outputs/apk/release
 appcie/build/outputs/apk/debug/output-metadata.json
+app/build/intermediates
+app/build/kotlin
+app/build/tmp
+app/build/reports
+app/build/generated
+app/build/outputs/logs
+app/build/kotlinToolingMetadata
+app/build/outputs/sdk-dependencies
+app/build/outputs/apk/release
+app/build/outputs/apk/debug/output-metadata.json
+
+app/src/main/res/values.goutputstream
