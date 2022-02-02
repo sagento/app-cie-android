@@ -13,6 +13,7 @@ import android.provider.Settings
 import android.widget.Toast
 import it.ipzs.cieidsdk.common.CieIDSdk
 import it.ipzs.cieidsdk.common.OperativeMode
+import it.ipzs.cieidsdk.common.valuesPassed
 import it.ipzs.cieidsdk.event.*
 import it.ipzs.cieidsdk.exceptions.BlockedPinException
 import it.ipzs.cieidsdk.exceptions.NoCieException
@@ -23,6 +24,7 @@ import it.ipzs.cieidsdk.util.CieIDSdkLogger
 
 object nfcCore : NfcAdapter.ReaderCallback {
 
+    var valuePassed : valuesPassed? = null
 
     override fun onTagDiscovered(tag: Tag?) {
         try {
@@ -32,26 +34,38 @@ object nfcCore : NfcAdapter.ReaderCallback {
             isoDep.connect()
 
             if (isoDep.isExtendedLengthApduSupported) {
-                CieIDSdkLogger.log("isExtendedLengthApduSupported : true")
+                CieIDSdkLogger.log("isExtendedLengthApduSupported : true", null)
             } else {
-                CieIDSdkLogger.log("isExtendedLengthApduSupported : false")
+                CieIDSdkLogger.log("isExtendedLengthApduSupported : false", null)
                 CieIDSdk.callback?.onEvent(Event(EventSmartphone.EXTENDED_APDU_NOT_SUPPORTED))
                 return
             }
 
             CieIDSdk.ias = Ias(isoDep)
 
-            CieIDSdkLogger.log("Tag discovered. Mode: " + CieIDSdk.mode.toString())
+            val message = "Tag discovered. Mode: " + CieIDSdk.mode.toString();
+            CieIDSdkLogger.log(message, null)
+
+            valuePassed?.getActivity()?.runOnUiThread {
+                CieIDSdk.textViewOtpResult?.text = message
+            }
+
+
 
             if (CieIDSdk.mode == OperativeMode.AUTH_IBRIDO) {
-                CieIDSdk.loginIbrido()
+                CieIDSdk.loginIbrido( null)
             } else if (CieIDSdk.mode == OperativeMode.AUTH_WEBVIEW) {
-                CieIDSdk.callWebView()
+                CieIDSdk.callWebView(null)
             }
 
 
         } catch (throwable: Throwable) {
-            CieIDSdkLogger.log(throwable.toString())
+            CieIDSdkLogger.log(throwable.toString(), null)
+
+            valuePassed?.getActivity()?.runOnUiThread {
+                CieIDSdk.textViewOtpResult?.text = throwable.toString()
+            }
+
             when (throwable) {
                 is PinNotValidException -> CieIDSdk.callback?.onEvent(
                     Event(

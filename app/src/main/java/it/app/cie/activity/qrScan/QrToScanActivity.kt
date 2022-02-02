@@ -52,7 +52,7 @@ class QrToScanActivity : AppCompatActivity() {
 
     private fun startQR(valuesPassed: valuesPassed): Boolean {
 
-        CieIDSdkLogger.log("starting qr code reader...")
+        CieIDSdkLogger.log("starting qr code reader...", valuesPassed.getContext())
 
         intentIntegrator = IntentIntegrator(valuesPassed.getActivity())
         intentIntegrator.setPrompt("Scan 'CIE' QR Code")
@@ -73,7 +73,7 @@ class QrToScanActivity : AppCompatActivity() {
             if (intentResult.contents != null) {
 
                 if (intentResult.contents != null) {
-                    CieIDSdkLogger.log("scanned qr: " + intentResult.contents.toString())
+                    CieIDSdkLogger.log("scanned qr: " + intentResult.contents.toString(), this)
                     processScannedQR_code(intentResult.contents)
                     return
 

@@ -74,7 +74,7 @@ object CieIDSdk {
 
 
     @SuppressLint("CheckResult")
-    fun callWebView() {
+    fun callWebView(context: Context?) {
 
         ias.getIdServizi()
         ias.startSecureChannel(ciePin)
@@ -91,7 +91,7 @@ object CieIDSdk {
         // handling all swallowed exception
         RxJavaPlugins.setErrorHandler { error ->
             run {
-                CieIDSdkLogger.log("error handled by RxJavaPlugins $error")
+                CieIDSdkLogger.log("error handled by RxJavaPlugins $error", context)
                 callback?.onError(error)
             }
         }
@@ -102,7 +102,7 @@ object CieIDSdk {
                 DisposableSingleObserver<Response<ResponseBody>>() {
                 override fun onSuccess(idpResponse: Response<ResponseBody>) {
                     if (idpResponse.isSuccessful) {
-                        CieIDSdkLogger.log("onSuccess")
+                        CieIDSdkLogger.log("onSuccess", context)
                         if (idpResponse.body() != null) {
                             val codiceServer =
                                 idpResponse.body()!!.string().split(":".toRegex())
@@ -118,24 +118,24 @@ object CieIDSdk {
                             callback?.onEvent(Event(EventError.AUTHENTICATION_ERROR))
                         }
                     } else {
-                        CieIDSdkLogger.log("onError")
+                        CieIDSdkLogger.log("onError", context)
                         callback?.onEvent(Event(EventError.AUTHENTICATION_ERROR))
                     }
 
                 }
 
                 override fun onError(e: Throwable) {
-                    CieIDSdkLogger.log("onError")
+                    CieIDSdkLogger.log("onError", context)
 
                     when (e) {
                         is SocketTimeoutException, is UnknownHostException -> {
-                            CieIDSdkLogger.log("SocketTimeoutException or UnknownHostException")
+                            CieIDSdkLogger.log("SocketTimeoutException or UnknownHostException", context)
                             callback?.onEvent(Event(EventError.ON_NO_INTERNET_CONNECTION))
 
                         }
                         is SSLProtocolException -> {
 
-                            CieIDSdkLogger.log("SSLProtocolException")
+                            CieIDSdkLogger.log("SSLProtocolException", context)
                             e.message?.let {
                                 when {
                                     it.contains(CERTIFICATE_EXPIRED) -> callback?.onEvent(
@@ -190,9 +190,9 @@ object CieIDSdk {
     }
 
 
-    private fun authQR(scannedUrl: String): String {
+    private fun authQR(scannedUrl: String, context: Context?): String {
 
-        CieIDSdkLogger.log("starting asking the CIE to sign the challenge...")
+        CieIDSdkLogger.log("starting asking the CIE to sign the challenge...", context)
 
         ias.getIdServizi()
         ias.startSecureChannel(pin)
@@ -213,13 +213,13 @@ object CieIDSdk {
         try {
             idpService = NetworkClient(certificate).idpService
         } catch (e: Exception) {
-            CieIDSdkLogger.log(e)
+            CieIDSdkLogger.log(e, context)
         }
 
         return hex
     }
 
-    internal fun loginIbrido() {
+    internal fun loginIbrido(context: Context?) {
         val uri: Uri =
             Uri.parse(qrCodeUrlScanned)
 
@@ -233,11 +233,11 @@ object CieIDSdk {
 
          */
 
-        val hex: String = authQR(qrCodeUrlScanned)
+        val hex: String = authQR(qrCodeUrlScanned, context)
 
-        CieIDSdkLogger.log("sign successful: hex=$hex")
+        CieIDSdkLogger.log("sign successful: hex=$hex", context)
 
-        loginIbridoPost(hex, opId)
+        loginIbridoPost(hex, opId,context)
     }
 
     fun startNfcAndDoActionOnSuccess(
@@ -247,7 +247,7 @@ object CieIDSdk {
         if (valuesPassed.getActivity() == null || valuesPassed.getCallback() == null)
             return false
 
-        CieIDSdkLogger.log("starting nfc scan...")
+        CieIDSdkLogger.log("starting nfc scan...", valuesPassed.getContext())
 
 
         start(valuesPassed.getActivity()!!, valuesPassed.getCallback()!!)
@@ -294,14 +294,14 @@ object CieIDSdk {
 
 
     @SuppressLint("CheckResult")
-    private fun loginIbridoPost(hex: String, opId: String) {
+    private fun loginIbridoPost(hex: String, opId: String, context: Context?) {
         val mapValues = hashMapOf<String, String>()
         mapValues.apply {
             put("hashJsonFirmato", hex)
             put("opId", opId)
         }
 
-        CieIDSdkLogger.log("sending the challenge signed to the server...")
+        CieIDSdkLogger.log("sending the challenge signed to the server...", context)
 
         idpService.callIdpQr(mapValues).subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
@@ -310,7 +310,7 @@ object CieIDSdk {
                 override fun onSuccess(idpResponse: Response<ResponseBody>) {
                     val r = idpResponse.body()?.string()
 
-                    CieIDSdkLogger.log("server reply was: $r")
+                    CieIDSdkLogger.log("server reply was: $r", context)
 
                     if (r != null) {
                         val codice: String
@@ -318,16 +318,16 @@ object CieIDSdk {
                         try {
                             codice = r.split(":")[1]
                             textViewOtpResult?.text = codice
-                            CieIDSdkLogger.log("codice otp: $codice")
+                            CieIDSdkLogger.log("codice otp: $codice", context)
                         } catch (e: Exception) {
-                            CieIDSdkLogger.log("exception $e")
+                            CieIDSdkLogger.log("exception $e",context)
                         }
 
                     }
                 }
 
                 override fun onError(e: Throwable) {
-                    CieIDSdkLogger.log(e)
+                    CieIDSdkLogger.log(e, context)
                 }
             })
     }

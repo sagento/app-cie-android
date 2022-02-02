@@ -8,5 +8,5 @@ dependencyResolutionManagement {
 rootProject.name = "Cie"
 include ':app'
 
-enableFeaturePreview("VERSION_CATALOGS")
+
 include ':cieidsdk'

@@ -52,7 +52,7 @@ internal open class CieSignatureImpl : SignatureSpi() {
 
     class None : CieSignatureImpl() {
         init {
-            CieIDSdkLogger.log("CieSignatureImpl NONE")
+            CieIDSdkLogger.log("CieSignatureImpl NONE", null)
         }
     }
 }

@@ -12,6 +12,7 @@ import it.ipzs.cieidsdk.util.CieIDSdkLogger
 import it.app.cie.activity.menu.MenuActivity
 import it.app.cie.R
 import it.app.cie.lib.CallbackCie
+import it.ipzs.cieidsdk.nfc.common.nfcCore
 
 class QrScannedActivity : AppCompatActivity() {
 
@@ -23,6 +24,7 @@ class QrScannedActivity : AppCompatActivity() {
 
         textViewResult = findViewById(R.id.textView_result)
         CieIDSdk.textViewOtpResult = textViewResult
+        nfcCore.valuePassed = valuesPassed(this,this,null)
 
         val buttonBackToMenu: Button = findViewById(R.id.button_backtomenu2)
         buttonBackToMenu.setOnClickListener {
@@ -35,7 +37,7 @@ class QrScannedActivity : AppCompatActivity() {
         try {
             startNfcAndDoActionOnSuccess(valuesPassed(this, this, callback))
         } catch (e: Exception) {
-            CieIDSdkLogger.log(e)
+            CieIDSdkLogger.log(e, null)
         }
     }
 

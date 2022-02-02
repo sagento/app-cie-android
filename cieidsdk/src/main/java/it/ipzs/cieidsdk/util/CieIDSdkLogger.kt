@@ -1,6 +1,9 @@
 package it.ipzs.cieidsdk.util
 
+import android.app.Application
+import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import it.ipzs.cieidsdk.common.CieIDSdk
 
 class CieIDSdkLogger {
@@ -9,25 +12,31 @@ class CieIDSdkLogger {
 
         private const val TAG: String = "CieIDSdkLogger"
 
-        fun log(message: String) {
+        fun log(message: String, context: Context?) {
             if (CieIDSdk.enableLog) {
-                Log.d(TAG, message)
-                println(message)
+                log2(message, context)
+
             }
         }
 
-        fun log(message: Exception) {
+        private fun log2(message: String, context: Context?) {
+            Log.d(TAG, message)
+            println(message)
+            if (context != null) {
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        fun log(message: Exception, context: Context?) {
             if (CieIDSdk.enableLog && message.message != null) {
-                Log.d(TAG, message.message.toString())
-                println(message.message.toString())
+                log2(message.message.toString(), context)
             }
         }
 
-        fun log(e: Throwable) {
+        fun log(e: Throwable, context: Context?) {
             if (e.message != null)
                 if (CieIDSdk.enableLog) {
-                    Log.d(TAG, e.message.toString())
-                    println(e.message.toString())
+                    log2(e.message.toString(), context)
                 }
         }
     }
