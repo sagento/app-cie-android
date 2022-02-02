@@ -25,7 +25,15 @@ jobs:
     - name: git submodule update
       run: git submodule update
     - name: git submodule foreach git pull
-      run: git submodule foreach git pull      
+      run: git submodule foreach git pull 
+      
+    - name: Delete useless lines (1)
+      run: sed $'s/\r$//' ./gradlew > ./gradlew2
+    - name: Delete useless lines (2)
+      run: rm ./gradlew
+    - name: Delete useless lines (3)
+      run: mv ./gradlew2 ./gradlew
+      
     - name: Grant execute permission for gradlew
       run: chmod +x ./gradlew
     - name: Build with Gradle
