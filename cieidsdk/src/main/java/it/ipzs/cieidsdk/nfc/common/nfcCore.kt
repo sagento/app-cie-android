@@ -24,7 +24,8 @@ import it.ipzs.cieidsdk.util.CieIDSdkLogger
 
 object nfcCore : NfcAdapter.ReaderCallback {
 
-    var valuePassed : valuesPassed? = null
+    var valuePassed: valuesPassed? = null
+    var isNfcOn: Boolean = false
 
     override fun onTagDiscovered(tag: Tag?) {
         try {
@@ -43,7 +44,7 @@ object nfcCore : NfcAdapter.ReaderCallback {
 
             CieIDSdk.ias = Ias(isoDep)
 
-            val message = "Tag discovered. Mode: " + CieIDSdk.mode.toString();
+            val message = "Tag discovered. Mode: " + CieIDSdk.mode.toString()
             CieIDSdkLogger.log(message, null)
 
             valuePassed?.getActivity()?.runOnUiThread {
@@ -53,7 +54,7 @@ object nfcCore : NfcAdapter.ReaderCallback {
 
 
             if (CieIDSdk.mode == OperativeMode.AUTH_IBRIDO) {
-                CieIDSdk.loginIbrido( null)
+                CieIDSdk.loginIbrido(null)
             } else if (CieIDSdk.mode == OperativeMode.AUTH_WEBVIEW) {
                 CieIDSdk.callWebView(null)
             }
@@ -88,7 +89,7 @@ object nfcCore : NfcAdapter.ReaderCallback {
      */
     fun startNFCListening(activity: Activity) {
         try {
-            if (!activity.isFinishing) {
+            if (!activity.isFinishing && isNfcOn) {
                 CieIDSdk.nfcAdapter?.enableReaderMode(
                     activity,
                     this,

@@ -24,7 +24,7 @@ class QrScannedActivity : AppCompatActivity() {
 
         textViewResult = findViewById(R.id.textView_result)
         CieIDSdk.textViewOtpResult = textViewResult
-        nfcCore.valuePassed = valuesPassed(this,this,null)
+        nfcCore.valuePassed = valuesPassed(this, this, null)
 
         val buttonBackToMenu: Button = findViewById(R.id.button_backtomenu2)
         buttonBackToMenu.setOnClickListener {
@@ -39,6 +39,19 @@ class QrScannedActivity : AppCompatActivity() {
         } catch (e: Exception) {
             CieIDSdkLogger.log(e, null)
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        //faccio partire l'ascolto dell'nfc
+        nfcCore.startNFCListening(this)
+    }
+
+
+    override fun onPause() {
+        super.onPause()
+        //stop l'ascolto dell'nfc
+        nfcCore.stopNFCListening(this)
     }
 
 }

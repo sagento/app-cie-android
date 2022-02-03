@@ -29,7 +29,7 @@ constructor(mod: ByteArray, exp: ByteArray) {
         val pubKeySpec = RSAPrivateKeySpec(modulus, privateExp)
 
         cipher = Cipher.getInstance("RSA/ECB/NoPadding")
-        this.key = keyFactory!!.generatePrivate(pubKeySpec) as RSAPrivateKey
+        this.key = (keyFactory ?: return).generatePrivate(pubKeySpec) as RSAPrivateKey
 
 
     }

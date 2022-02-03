@@ -27,7 +27,7 @@ class valuesPassed(
             return context
 
         if (activity != null)
-            return activity!!.baseContext
+            return (activity ?: return null).baseContext
 
         return null
     }

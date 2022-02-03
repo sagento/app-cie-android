@@ -22,6 +22,7 @@ import it.ipzs.cieidsdk.network.service.IdpService
 import it.ipzs.cieidsdk.nfc.AppUtil
 import it.ipzs.cieidsdk.nfc.Ias
 import it.ipzs.cieidsdk.nfc.algorithms.Sha256
+import it.ipzs.cieidsdk.nfc.common.nfcCore
 import it.ipzs.cieidsdk.nfc.common.nfcCore.startNFCListening
 import it.ipzs.cieidsdk.url.DeepLinkInfo
 import it.ipzs.cieidsdk.util.CieIDSdkLogger
@@ -83,7 +84,7 @@ object CieIDSdk {
 
         val idpService: IdpService = NetworkClient(certificate).idpService
         val mapValues = hashMapOf<String, String>().apply {
-            put(deepLinkInfo.name!!, deepLinkInfo.value!!)
+            put(deepLinkInfo.name ?: return@apply, deepLinkInfo.value ?: return@apply)
             put(IdpService.authnRequest, deepLinkInfo.authnRequest ?: "")
             put(IdpService.generaCodice, "1")
         }
@@ -105,7 +106,7 @@ object CieIDSdk {
                         CieIDSdkLogger.log("onSuccess", context)
                         if (idpResponse.body() != null) {
                             val codiceServer =
-                                idpResponse.body()!!.string().split(":".toRegex())
+                                (idpResponse.body() ?: return).string().split(":".toRegex())
                                     .dropLastWhile { it.isEmpty() }.toTypedArray()[1]
                             if (!checkCodiceServer(codiceServer)) {
                                 callback?.onEvent(Event(EventError.GENERAL_ERROR))
@@ -129,7 +130,10 @@ object CieIDSdk {
 
                     when (e) {
                         is SocketTimeoutException, is UnknownHostException -> {
-                            CieIDSdkLogger.log("SocketTimeoutException or UnknownHostException", context)
+                            CieIDSdkLogger.log(
+                                "SocketTimeoutException or UnknownHostException",
+                                context
+                            )
                             callback?.onEvent(Event(EventError.ON_NO_INTERNET_CONNECTION))
 
                         }
@@ -237,7 +241,7 @@ object CieIDSdk {
 
         CieIDSdkLogger.log("sign successful: hex=$hex", context)
 
-        loginIbridoPost(hex, opId,context)
+        loginIbridoPost(hex, opId, context)
     }
 
     fun startNfcAndDoActionOnSuccess(
@@ -247,6 +251,7 @@ object CieIDSdk {
         if (valuesPassed.getActivity() == null || valuesPassed.getCallback() == null)
             return false
 
+        nfcCore.isNfcOn = true
         CieIDSdkLogger.log("starting nfc scan...", valuesPassed.getContext())
 
 
@@ -262,7 +267,7 @@ object CieIDSdk {
     ) {
 
         if (pin.isEmpty()) {
-            val builder = AlertDialog.Builder(valuesPassed.getContext()!!)
+            val builder = AlertDialog.Builder(valuesPassed.getContext() ?: return)
             builder.setTitle("Inserisci PIN")
 
             // Set up the input
@@ -320,7 +325,7 @@ object CieIDSdk {
                             textViewOtpResult?.text = codice
                             CieIDSdkLogger.log("codice otp: $codice", context)
                         } catch (e: Exception) {
-                            CieIDSdkLogger.log("exception $e",context)
+                            CieIDSdkLogger.log("exception $e", context)
                         }
 
                     }

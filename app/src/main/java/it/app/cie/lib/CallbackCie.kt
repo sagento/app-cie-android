@@ -40,7 +40,7 @@ class CallbackCie(
     @SuppressLint("SetTextI18n")
     override fun onError(error: Throwable) {
         if (error.localizedMessage != null) {
-            Log.d("onError", error.localizedMessage!!)
+            Log.d("onError", error.localizedMessage ?: return)
             activityCompat.runOnUiThread {
                 text?.text = "ERROR : $error.localizedMessage"
             }

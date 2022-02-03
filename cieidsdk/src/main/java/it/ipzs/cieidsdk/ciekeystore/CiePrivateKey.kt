@@ -6,7 +6,8 @@ import java.security.interfaces.RSAPrivateKey
 import java.security.interfaces.RSAPublicKey
 
 
-internal class CiePrivateKey internal constructor(private val cert: X509Certificate) : RSAPrivateKey {
+internal class CiePrivateKey internal constructor(private val cert: X509Certificate) :
+    RSAPrivateKey {
 
     override fun getAlgorithm(): String {
         return "RSA"

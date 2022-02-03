@@ -639,7 +639,8 @@ open class Ias constructor(private val isoDep: IsoDep) {
         val setKey = byteArrayOf(0x00, 0x22, 0x41, 0xA4.toByte())
         val val02 = byteArrayOf(0x02)
         val keyId = byteArrayOf(CIE_KEY_Sign_ID)
-        val dati = AppUtil.appendByteArray(AppUtil.asn1Tag(val02, 0x80), AppUtil.asn1Tag(keyId, 0x84))
+        val dati =
+            AppUtil.appendByteArray(AppUtil.asn1Tag(val02, 0x80), AppUtil.asn1Tag(keyId, 0x84))
         sendApduSM(setKey, dati, null)
         val signApdu = byteArrayOf(0x00, 0x88.toByte(), 0x00, 0x00)
         val response = sendApduSM(signApdu, dataToSign, null)
@@ -864,7 +865,7 @@ open class Ias constructor(private val isoDep: IsoDep) {
         val GET_DATA_Data = byteArrayOf(0x4d, 0x04, 0xa6.toByte(), 0x02, 0x91.toByte(), 0x00)
         val respAsn = sendApdu(GET_DATA, GET_DATA_Data, null)
         val asn1 = Asn1Tag.parse(respAsn.response, true)
-        dh_ICCpubKey = asn1!!.child(0).data
+        dh_ICCpubKey = (asn1 ?: return).child(0).data
         val secret = rsa.encrypt(dh_ICCpubKey)
 
         val diffENC = byteArrayOf(0x00, 0x00, 0x00, 0x01)
@@ -904,7 +905,7 @@ open class Ias constructor(private val isoDep: IsoDep) {
         )
         val response = sendApdu(getKeyDoup, getKeyDuopData, null)
         val asn1 = Asn1Tag.parse(response.response, true)
-        caModule = asn1!!.child(0).child(0).Child(0, 0x81.toByte()).data
+        caModule = (asn1 ?: return).child(0).child(0).Child(0, 0x81.toByte()).data
         caPubExp = asn1.child(0).child(0).Child(1, 0x82.toByte()).data
         baExtAuth_PrivExp = byteArrayOf(
             0x18,
@@ -1165,8 +1166,8 @@ open class Ias constructor(private val isoDep: IsoDep) {
             0xC1.toByte()
         )
         caPrivExp = baExtAuth_PrivExp
-        val caCha = asn1.child(0).child(0).childWithTagID(byteArrayOf(0x5f, 0x4c))!!.data
-        val caChr = asn1.child(0).child(0).childWithTagID(byteArrayOf(0x5f, 0x20))!!.data
+        val caCha = (asn1.child(0).child(0).childWithTagID(byteArrayOf(0x5f, 0x4c)) ?: return).data
+        val caChr = (asn1.child(0).child(0).childWithTagID(byteArrayOf(0x5f, 0x20)) ?: return).data
         caCar = AppUtil.getSub(caChr, 4)
         caAid = AppUtil.getLeft(caCha, 6)
     }
@@ -1195,7 +1196,7 @@ open class Ias constructor(private val isoDep: IsoDep) {
         )
         var resp = sendApdu(getDHDoup, getDHDuopData_g, null)
         var asn1Tag = Asn1Tag.parse(resp.response, false)
-        dh_g = asn1Tag!!.child(0).child(0).child(0).data
+        dh_g = (asn1Tag ?: return).child(0).child(0).child(0).data
         val getDHDuopData_p = byteArrayOf(
             0x4D,
             0x0A,
@@ -1212,7 +1213,7 @@ open class Ias constructor(private val isoDep: IsoDep) {
         )
         resp = sendApdu(getDHDoup, getDHDuopData_p, null)
         asn1Tag = Asn1Tag.parse(resp.response, false)
-        dh_p = asn1Tag!!.child(0).child(0).child(0).data
+        dh_p = (asn1Tag ?: return).child(0).child(0).child(0).data
         val getDHDuopData_q = byteArrayOf(
             0x4D,
             0x0A,
@@ -1229,7 +1230,7 @@ open class Ias constructor(private val isoDep: IsoDep) {
         )
         resp = sendApdu(getDHDoup, getDHDuopData_q, null)
         asn1Tag = Asn1Tag.parse(resp.response, false)
-        dh_q = asn1Tag!!.child(0).child(0).child(0).data
+        dh_q = (asn1Tag ?: return).child(0).child(0).child(0).data
     }
 
     /**
@@ -1245,7 +1246,7 @@ open class Ias constructor(private val isoDep: IsoDep) {
             throw ReadPublicKeyException()
         //selectAidCie()
         val asn1 = Asn1Tag.parse(dappKey, false)
-        dappModule = asn1!!.child(0).data
+        dappModule = (asn1 ?: return).child(0).data
         while (dappModule[0].toInt() == 0)
             dappModule = AppUtil.getSub(dappModule, 1, dappModule.size - 1)
         dappPubKey = asn1.child(1).data

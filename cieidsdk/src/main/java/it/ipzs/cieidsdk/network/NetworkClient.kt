@@ -20,7 +20,7 @@ import javax.net.ssl.TrustManagerFactory
 import javax.net.ssl.X509TrustManager
 
 
-class NetworkClient(private val certificate : ByteArray) {
+class NetworkClient(private val certificate: ByteArray) {
 
     init {
         val sslContext = SSLContext.getInstance("TLSv1.2")
@@ -49,11 +49,16 @@ class NetworkClient(private val certificate : ByteArray) {
         kmf.init(cieKeyStore, null)
         val keyManagers = kmf.keyManagers
 
-        val trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
+        val trustManagerFactory =
+            TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
         trustManagerFactory.init(null as KeyStore?)
         val trustManagers = trustManagerFactory.trustManagers
         if (trustManagers.size != 1 || trustManagers[0] !is X509TrustManager) {
-            throw IllegalStateException("Unexpected default trust managers:" + Arrays.toString(trustManagers))
+            throw IllegalStateException(
+                "Unexpected default trust managers:" + Arrays.toString(
+                    trustManagers
+                )
+            )
         }
         val trustManager = trustManagers[0] as X509TrustManager
         val sslContext = SSLContext.getInstance("TLSv1.2")

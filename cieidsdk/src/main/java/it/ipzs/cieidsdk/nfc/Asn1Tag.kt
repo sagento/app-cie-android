@@ -146,9 +146,9 @@ constructor(objects: Array<Any>) {
                     val child =
                         parse(ms, start + readPos.toLong() + parsedLen, len - parsedLen, reparse)
                     if (child != null)
-                        childern!!.add(child)
+                        (childern ?: return null).add(child)
 
-                    parsedLen += child!!.childSize
+                    parsedLen += (child ?: return null).childSize
                     if (parsedLen > len) {
                         childern = null
                         break
