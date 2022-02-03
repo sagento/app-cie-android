@@ -1,5 +1,6 @@
 package it.ipzs.cieidsdk.nfc.common
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -22,10 +23,13 @@ import it.ipzs.cieidsdk.exceptions.PinNotValidException
 import it.ipzs.cieidsdk.nfc.Ias
 import it.ipzs.cieidsdk.util.CieIDSdkLogger
 
+@SuppressLint("StaticFieldLeak")
 object nfcCore : NfcAdapter.ReaderCallback {
 
     var valuePassed: valuesPassed? = null
     var isNfcOn: Boolean = false
+    var activity: Activity? = null
+    var context: Context? = null
 
     override fun onTagDiscovered(tag: Tag?) {
         try {
@@ -54,9 +58,9 @@ object nfcCore : NfcAdapter.ReaderCallback {
 
 
             if (CieIDSdk.mode == OperativeMode.AUTH_IBRIDO) {
-                CieIDSdk.loginIbrido(null)
+                CieIDSdk.loginIbrido(context, activity)
             } else if (CieIDSdk.mode == OperativeMode.AUTH_WEBVIEW) {
-                CieIDSdk.callWebView(null)
+                CieIDSdk.callWebView(context)
             }
 
 

@@ -2,13 +2,10 @@ package it.ipzs.cieidsdk.common
 
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.app.AlertDialog
 import android.content.Context
 import android.net.Uri
 import android.nfc.NfcAdapter
 import android.nfc.NfcManager
-import android.text.InputType
-import android.widget.EditText
 import android.widget.TextView
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.observers.DisposableSingleObserver
@@ -66,7 +63,7 @@ object CieIDSdk {
 
     // pin property
     // 'set' checks if the given value has a valid pin cie format (string, 8 length, all chars are digits)
-    private var pin: String
+    var pin: String
         get() = ciePin
         set(value) {
             require(ciePinRegex.matches(value)) { "the given cie PIN has no valid format" }
@@ -223,7 +220,7 @@ object CieIDSdk {
         return hex
     }
 
-    internal fun loginIbrido(context: Context?) {
+    internal fun loginIbrido(context: Context?, activity: Activity?) {
         val uri: Uri =
             Uri.parse(qrCodeUrlScanned)
 
@@ -241,7 +238,7 @@ object CieIDSdk {
 
         CieIDSdkLogger.log("sign successful: hex=$hex", context)
 
-        loginIbridoPost(hex, opId, context)
+        loginIbridoPost(hex, opId, context, activity)
     }
 
     fun startNfcAndDoActionOnSuccess(
@@ -252,6 +249,8 @@ object CieIDSdk {
             return false
 
         nfcCore.isNfcOn = true
+        nfcCore.activity = valuesPassed.getActivity()
+        nfcCore.context = valuesPassed.getContext()
         CieIDSdkLogger.log("starting nfc scan...", valuesPassed.getContext())
 
 
@@ -261,45 +260,9 @@ object CieIDSdk {
 
     }
 
-    fun insertPin(
-        functionToRun: (valuesPassed) -> Boolean,
-        valuesPassed: valuesPassed
-    ) {
-
-        if (pin.isEmpty()) {
-            val builder = AlertDialog.Builder(valuesPassed.getContext() ?: return)
-            builder.setTitle("Inserisci PIN")
-
-            // Set up the input
-            val input = EditText(valuesPassed.getContext())
-            // Specify the type of input expected; this, for example, sets the input as a password, and will mask the text
-            input.inputType = InputType.TYPE_CLASS_NUMBER
-            builder.setView(input)
-
-            // Set up the buttons
-            builder.setPositiveButton(
-                "OK"
-            ) { dialog, _ ->
-                if (input.text != null && input.text.isNotEmpty() && input.text.length == 8) {
-                    pin = input.text.toString()
-                    functionToRun(valuesPassed)
-                } else {
-                    dialog.cancel()
-                }
-            }
-            builder.setNegativeButton(
-                "Cancel"
-            ) { dialog, _ -> dialog.cancel() }
-
-            builder.show()
-        } else {
-            functionToRun(valuesPassed)
-        }
-    }
-
 
     @SuppressLint("CheckResult")
-    private fun loginIbridoPost(hex: String, opId: String, context: Context?) {
+    private fun loginIbridoPost(hex: String, opId: String, context: Context?, activity: Activity?) {
         val mapValues = hashMapOf<String, String>()
         mapValues.apply {
             put("hashJsonFirmato", hex)
@@ -323,6 +286,10 @@ object CieIDSdk {
                         try {
                             codice = r.split(":")[1]
                             textViewOtpResult?.text = codice
+                            nfcCore.isNfcOn = false
+                            if (activity != null) {
+                                nfcCore.stopNFCListening(activity)
+                            }
                             CieIDSdkLogger.log("codice otp: $codice", context)
                         } catch (e: Exception) {
                             CieIDSdkLogger.log("exception $e", context)

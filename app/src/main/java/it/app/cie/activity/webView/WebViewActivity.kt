@@ -12,7 +12,7 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import it.ipzs.cieidsdk.common.CieIDSdk
-import it.ipzs.cieidsdk.common.CieIDSdk.insertPin
+
 import it.ipzs.cieidsdk.common.CieIDSdk.startNfcAndDoActionOnSuccess
 import it.ipzs.cieidsdk.common.valuesPassed
 import it.ipzs.cieidsdk.nfc.common.nfcCore.detectNfcStatus
@@ -21,6 +21,7 @@ import it.ipzs.cieidsdk.nfc.common.nfcCore.stopNFCListening
 import it.app.cie.R
 import it.app.cie.activity.menu.MenuActivity
 import it.app.cie.lib.CallbackCie
+import it.app.cie.lib.utils
 
 
 class WebViewActivity : AppCompatActivity() {
@@ -97,7 +98,7 @@ class WebViewActivity : AppCompatActivity() {
 
                         val valuesPassed = valuesPassed(activity, context, callbackCie)
 
-                        insertPin(::startNFC, valuesPassed)
+                        utils.insertPin(::startNFC, valuesPassed)
                         return true
                     }
 

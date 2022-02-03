@@ -10,4 +10,14 @@
     <string name="app_cie">app CIE</string>
     <string name="torna_al_menu">Torna al menu</string>
     <string name="errore">Errore?</string>
+    <string name="inserisci_pin_8_cifre">Inserisci PIN (8 cifre)</string>
+    <string name="continua">Continua</string>
+    <string name="scegli">Scegli</string>
+    <string name="pin">Pin:</string>
+    <string name="name">Name</string>
+    <string name="nome">Nome:</string>
+    <string name="salva_in_rubrica">Salva in rubrica</string>
+    <string name="salva">Salva</string>
+    <string name="carica">Carica</string>
+    <string name="svuota_rubrica">Svuota rubrica</string>
 </resources>

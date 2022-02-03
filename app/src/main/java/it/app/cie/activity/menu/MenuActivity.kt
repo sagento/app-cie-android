@@ -34,7 +34,7 @@ class MenuActivity : AppCompatActivity() {
                 )
             ) {
                 CieIDSdk.mode = OperativeMode.AUTH_WEBVIEW
-                val intent = Intent(this, WebViewActivity::class.java)
+                val intent: Intent = Intent(this, WebViewActivity::class.java)
                 startActivity(intent)
             }
         }

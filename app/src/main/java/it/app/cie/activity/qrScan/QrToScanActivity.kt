@@ -11,13 +11,14 @@ import androidx.appcompat.app.AppCompatActivity
 import com.google.zxing.integration.android.IntentIntegrator
 import it.ipzs.cieidsdk.common.Callback
 import it.ipzs.cieidsdk.common.CieIDSdk
-import it.ipzs.cieidsdk.common.CieIDSdk.insertPin
+
 import it.ipzs.cieidsdk.common.valuesPassed
 import it.ipzs.cieidsdk.nfc.common.nfcCore.detectNfcStatus
 import it.ipzs.cieidsdk.util.CieIDSdkLogger
 import it.app.cie.activity.menu.MenuActivity
 import it.app.cie.R
 import it.app.cie.lib.CallbackCie
+import it.app.cie.lib.utils.Companion.insertPin
 
 
 class QrToScanActivity : AppCompatActivity() {
