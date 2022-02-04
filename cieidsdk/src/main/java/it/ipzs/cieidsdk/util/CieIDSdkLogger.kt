@@ -1,6 +1,6 @@
 package it.ipzs.cieidsdk.util
 
-import android.content.Context
+import android.app.Activity
 import android.util.Log
 import android.widget.Toast
 import it.ipzs.cieidsdk.common.CieIDSdk
@@ -11,31 +11,43 @@ class CieIDSdkLogger {
 
         private const val TAG: String = "CieIDSdkLogger"
 
-        fun log(message: String, context: Context?) {
+        fun log(message: String, activity: Activity?) {
             if (CieIDSdk.enableLog) {
-                log2(message, context)
+                log2(message, true, activity)
 
             }
         }
 
-        private fun log2(message: String, context: Context?) {
+        private fun log2(message: String, toast: Boolean, activity: Activity?) {
             Log.d(TAG, message)
             println(message)
-            if (context != null) {
-                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            if (toast && activity != null) {
+                try {
+                    activity.runOnUiThread {
+                        Toast.makeText(
+                            activity,
+                            message,
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+
+
+                } catch (e: Exception) {
+                    log(e, activity, toast = false)
+                }
             }
         }
 
-        fun log(message: Exception, context: Context?) {
+        private fun log(message: Exception, activity: Activity?, toast: Boolean) {
             if (CieIDSdk.enableLog && message.message != null) {
-                log2(message.message.toString(), context)
+                log2(message.message.toString(), toast, activity)
             }
         }
 
-        fun log(e: Throwable, context: Context?) {
+        fun log(e: Throwable, activity: Activity?) {
             if (e.message != null)
                 if (CieIDSdk.enableLog) {
-                    log2(e.message.toString(), context)
+                    log2(e.message.toString(), true, activity)
                 }
         }
     }

@@ -60,7 +60,7 @@ object nfcCore : NfcAdapter.ReaderCallback {
             if (CieIDSdk.mode == OperativeMode.AUTH_IBRIDO) {
                 CieIDSdk.loginIbrido(context, activity)
             } else if (CieIDSdk.mode == OperativeMode.AUTH_WEBVIEW) {
-                CieIDSdk.callWebView(context)
+                CieIDSdk.callWebView(activity)
             }
 
 
