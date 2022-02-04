@@ -5,14 +5,14 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import it.app.cie.R
+import it.app.cie.activity.menu.MenuActivity
+import it.app.cie.lib.CallbackCie
 import it.ipzs.cieidsdk.common.CieIDSdk
 import it.ipzs.cieidsdk.common.CieIDSdk.startNfcAndDoActionOnSuccess
 import it.ipzs.cieidsdk.common.valuesPassed
-import it.ipzs.cieidsdk.util.CieIDSdkLogger
-import it.app.cie.activity.menu.MenuActivity
-import it.app.cie.R
-import it.app.cie.lib.CallbackCie
 import it.ipzs.cieidsdk.nfc.common.nfcCore
+import it.ipzs.cieidsdk.util.CieIDSdkLogger
 
 class QrScannedActivity : AppCompatActivity() {
 

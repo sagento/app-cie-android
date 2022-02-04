@@ -1,5 +1,7 @@
 package it.app.cie.activity.pin
 
+import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Context
 import android.os.Bundle
 import android.widget.Button
@@ -9,7 +11,6 @@ import androidx.appcompat.app.AppCompatActivity
 import it.app.cie.R
 import it.app.cie.lib.utils
 import it.ipzs.cieidsdk.common.CieIDSdk
-import it.ipzs.cieidsdk.common.valuesPassed
 import it.ipzs.cieidsdk.util.CieIDSdkLogger
 import java.io.File
 
@@ -17,8 +18,10 @@ import java.io.File
 class askPinActivity : AppCompatActivity() {
 
     companion object {
-        var functionToRun: ((valuesPassed) -> Boolean)? = null
-        var valuesPassed: valuesPassed? = null
+
+
+        @SuppressLint("StaticFieldLeak")
+        var context: Context? = null
         var rubrica: HashMap<String, String>? = null
     }
 
@@ -67,7 +70,7 @@ class askPinActivity : AppCompatActivity() {
 
         try {
             val filename = utils.filename_rubrica
-            valuesPassed?.getContext()?.openFileOutput(filename, Context.MODE_PRIVATE).use {
+            context?.openFileOutput(filename, Context.MODE_PRIVATE).use {
 
                 if (it != null) {
                     val whatToWrite = getWhatToWrite()
@@ -141,16 +144,14 @@ class askPinActivity : AppCompatActivity() {
     }
 
     private fun clickedButton() {
-        val textEdit: EditText = findViewById<EditText>(R.id.editTextNumber_pin)
+        val textEdit: EditText = findViewById(R.id.editTextNumber_pin)
         val value = textEdit.text?.toString()
         if (value != null && value.length == 8) {
             CieIDSdk.pin = value
 
-            this.finish()
 
-            if (functionToRun != null && valuesPassed != null) {
-                functionToRun?.invoke(valuesPassed ?: return)
-            }
+            setResult(Activity.RESULT_OK)
+            this.finish()
         }
     }
 }

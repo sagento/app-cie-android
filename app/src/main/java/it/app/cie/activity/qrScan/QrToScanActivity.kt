@@ -1,5 +1,6 @@
 package it.app.cie.activity.qrScan
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.view.View.GONE
@@ -7,18 +8,19 @@ import android.view.View.VISIBLE
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.google.zxing.integration.android.IntentIntegrator
+import it.app.cie.R
+import it.app.cie.activity.menu.MenuActivity
+import it.app.cie.lib.CallbackCie
+import it.app.cie.lib.utils.Companion.insertPin
 import it.ipzs.cieidsdk.common.Callback
 import it.ipzs.cieidsdk.common.CieIDSdk
-
 import it.ipzs.cieidsdk.common.valuesPassed
 import it.ipzs.cieidsdk.nfc.common.nfcCore.detectNfcStatus
 import it.ipzs.cieidsdk.util.CieIDSdkLogger
-import it.app.cie.activity.menu.MenuActivity
-import it.app.cie.R
-import it.app.cie.lib.CallbackCie
-import it.app.cie.lib.utils.Companion.insertPin
 
 
 class QrToScanActivity : AppCompatActivity() {
@@ -43,17 +45,30 @@ class QrToScanActivity : AppCompatActivity() {
 
         callback = CallbackCie(this)
         val valuesPassedVar = valuesPassed(this, this, callback)
-        insertPin(::startQR, valuesPassedVar)
+        insertPin(valuesPassedVar, startForResult)
 
 
     }
+
+    private val startForResult =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult())
+        { result: ActivityResult ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                //  you will get result here in result.data
+                callback = CallbackCie(this)
+                val valuesPassedVar = valuesPassed(this, this, callback)
+                startQR(valuesPassedVar)
+
+            }
+
+        }
 
 
     private lateinit var intentIntegrator: IntentIntegrator
 
     private fun startQR(valuesPassed: valuesPassed): Boolean {
 
-        CieIDSdkLogger.log("starting qr code reader...", valuesPassed.getContext())
+        CieIDSdkLogger.log("starting qr code reader...", valuesPassed.getActivity())
 
         intentIntegrator = IntentIntegrator(valuesPassed.getActivity())
         intentIntegrator.setPrompt("Scan 'CIE' QR Code")

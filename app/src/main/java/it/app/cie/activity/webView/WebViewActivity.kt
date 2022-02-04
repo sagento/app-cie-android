@@ -1,6 +1,7 @@
 package it.app.cie.activity.webView
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -10,18 +11,20 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Button
 import android.widget.TextView
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import it.app.cie.R
+import it.app.cie.activity.menu.MenuActivity
+import it.app.cie.lib.CallbackCie
+import it.app.cie.lib.utils
 import it.ipzs.cieidsdk.common.CieIDSdk
-
 import it.ipzs.cieidsdk.common.CieIDSdk.startNfcAndDoActionOnSuccess
 import it.ipzs.cieidsdk.common.valuesPassed
 import it.ipzs.cieidsdk.nfc.common.nfcCore.detectNfcStatus
 import it.ipzs.cieidsdk.nfc.common.nfcCore.startNFCListening
 import it.ipzs.cieidsdk.nfc.common.nfcCore.stopNFCListening
-import it.app.cie.R
-import it.app.cie.activity.menu.MenuActivity
-import it.app.cie.lib.CallbackCie
-import it.app.cie.lib.utils
 
 
 class WebViewActivity : AppCompatActivity() {
@@ -98,7 +101,7 @@ class WebViewActivity : AppCompatActivity() {
 
                         val valuesPassed = valuesPassed(activity, context, callbackCie)
 
-                        utils.insertPin(::startNFC, valuesPassed)
+                        utils.insertPin(valuesPassed, startForResult)
                         return true
                     }
 
@@ -112,18 +115,28 @@ class WebViewActivity : AppCompatActivity() {
 
     }
 
+    val startForResult: ActivityResultLauncher<Intent> =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult())
+        { result: ActivityResult ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                //  you will get result here in result.data
 
-    private fun startNFC(valuesPassed: valuesPassed): Boolean {
-        //configurazione cieidsdk
+                val callbackCie = CallbackCie(activity)
+                callbackCie.backButton = backButton
+                callbackCie.homeButton = homeButton
+                callbackCie.webView = webView
+                callbackCie.text = text
+                val valuesPassed = valuesPassed(activity, context, callbackCie)
+                webView.visibility = GONE
+                homeButton.visibility = GONE
+                backButton.visibility = GONE
+                text.visibility = VISIBLE
 
-        webView.visibility = GONE
-        homeButton.visibility = GONE
-        backButton.visibility = GONE
-        text.visibility = VISIBLE
+                startNfcAndDoActionOnSuccess(valuesPassed)
 
-        startNfcAndDoActionOnSuccess(valuesPassed)
-        return true
-    }
+            }
+
+        }
 
 
     override fun onResume() {
