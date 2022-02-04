@@ -1,7 +1,6 @@
 package it.app.cie.lib
 
 import android.annotation.SuppressLint
-import android.util.Log
 import android.view.View
 import android.webkit.WebView
 import android.widget.Button
@@ -11,6 +10,7 @@ import it.ipzs.cieidsdk.common.Callback
 import it.ipzs.cieidsdk.common.CieIDSdk
 import it.ipzs.cieidsdk.common.OperativeMode
 import it.ipzs.cieidsdk.event.Event
+import it.ipzs.cieidsdk.util.CieIDSdkLogger
 
 class CallbackCie(
     activityParam: AppCompatActivity
@@ -25,7 +25,7 @@ class CallbackCie(
 
     @SuppressLint("SetTextI18n")
     override fun onEvent(event: Event) {
-        Log.d("onEvent", event.toString())
+        CieIDSdkLogger.log("onEvent: $event", activityCompat)
         activityCompat.runOnUiThread {
             if (event.attempts == 0) {
                 text?.text = "EVENT : $event"
@@ -40,7 +40,7 @@ class CallbackCie(
     @SuppressLint("SetTextI18n")
     override fun onError(error: Throwable) {
         if (error.localizedMessage != null) {
-            Log.d("onError", error.localizedMessage ?: return)
+            CieIDSdkLogger.log("onError: " + error.localizedMessage, activityCompat)
             activityCompat.runOnUiThread {
                 text?.text = "ERROR : $error.localizedMessage"
             }

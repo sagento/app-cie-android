@@ -1,21 +1,30 @@
 package it.app.cie.lib
 
+
 import android.content.Intent
+import androidx.activity.result.ActivityResultLauncher
 import it.app.cie.activity.pin.askPinActivity
 import it.ipzs.cieidsdk.common.valuesPassed
 
 class utils {
-    companion object{
-        val rubrica_delimiter: String = "--@@#|#@@--"
-        val filename_rubrica: String = "rubrica.txt"
+    companion object {
+        const val rubrica_delimiter: String = "--@@#|#@@--"
+        const val filename_rubrica: String = "rubrica.txt"
 
-        fun insertPin(kFunction1: (valuesPassed) -> Boolean, valuesPassed: valuesPassed) {
+        fun insertPin(
+            valuesPassed: valuesPassed,
+            startForResult: ActivityResultLauncher<Intent>
+        ) {
 
-            askPinActivity.valuesPassed = valuesPassed
-            askPinActivity.functionToRun = kFunction1
-            val intent = Intent(valuesPassed.getContext(), askPinActivity::class.java)
-            valuesPassed.getActivity()?.startActivity(intent)
+            askPinActivity.context = valuesPassed.getContext()
+
+            startForResult.launch(Intent(valuesPassed.getContext(), askPinActivity::class.java))
+
+
         }
 
+
     }
+
 }
+
