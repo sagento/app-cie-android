@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.widget.Button
-import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -14,23 +13,22 @@ import androidx.appcompat.app.AppCompatActivity
 import com.google.zxing.integration.android.IntentIntegrator
 import it.app.cie.R
 import it.app.cie.activity.menu.MenuActivity
-import it.app.cie.lib.CallbackCie
 import it.app.cie.lib.utils.Companion.insertPin
-import it.ipzs.cieidsdk.common.Callback
-import it.ipzs.cieidsdk.common.CieIDSdk
-import it.ipzs.cieidsdk.common.valuesPassed
-import it.ipzs.cieidsdk.nfc.common.nfcCore.detectNfcStatus
+import it.ipzs.cieidsdk.nfc.common.nfcCore.Companion.detectNfcStatus
+import it.ipzs.cieidsdk.util.ActivityInfo
+import it.ipzs.cieidsdk.util.ActivityType
 import it.ipzs.cieidsdk.util.CieIDSdkLogger
+import it.ipzs.cieidsdk.util.variables
+import it.ipzs.cieidsdk.util.variables.Companion.textError
 
 
 class QrToScanActivity : AppCompatActivity() {
 
-    private lateinit var callback: Callback
-    private lateinit var textError: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_qrcode_reader)
+        variables.activityList.add(ActivityInfo(this, ActivityType.NORMAL, this))
 
         val buttonBackToMenu: Button = findViewById(R.id.button_backtomenu)
         buttonBackToMenu.setOnClickListener {
@@ -43,9 +41,9 @@ class QrToScanActivity : AppCompatActivity() {
 
         textError.visibility = GONE
 
-        callback = CallbackCie(this)
-        val valuesPassedVar = valuesPassed(this, this, callback)
-        insertPin(valuesPassedVar, startForResult)
+
+
+        insertPin(startForResult)
 
 
     }
@@ -55,9 +53,9 @@ class QrToScanActivity : AppCompatActivity() {
         { result: ActivityResult ->
             if (result.resultCode == Activity.RESULT_OK) {
                 //  you will get result here in result.data
-                callback = CallbackCie(this)
-                val valuesPassedVar = valuesPassed(this, this, callback)
-                startQR(valuesPassedVar)
+
+
+                startQR()
 
             }
 
@@ -66,11 +64,11 @@ class QrToScanActivity : AppCompatActivity() {
 
     private lateinit var intentIntegrator: IntentIntegrator
 
-    private fun startQR(valuesPassed: valuesPassed): Boolean {
+    private fun startQR(): Boolean {
 
-        CieIDSdkLogger.log("starting qr code reader...", valuesPassed.getActivity())
+        CieIDSdkLogger.log("starting qr code reader...", true)
 
-        intentIntegrator = IntentIntegrator(valuesPassed.getActivity())
+        intentIntegrator = IntentIntegrator(variables.activityList.last().activity)
         intentIntegrator.setPrompt("Scan 'CIE' QR Code")
         intentIntegrator.setOrientationLocked(false)
         intentIntegrator.setBeepEnabled(false)
@@ -89,7 +87,7 @@ class QrToScanActivity : AppCompatActivity() {
             if (intentResult.contents != null) {
 
                 if (intentResult.contents != null) {
-                    CieIDSdkLogger.log("scanned qr: " + intentResult.contents.toString(), this)
+                    CieIDSdkLogger.log("scanned qr: " + intentResult.contents.toString(), true)
                     processScannedQR_code(intentResult.contents)
                     return
 
@@ -104,10 +102,10 @@ class QrToScanActivity : AppCompatActivity() {
     }
 
     private fun processScannedQR_code(contents: String) {
-        if (!detectNfcStatus(this, this, showToastOnFail = true, openSettingsNFC_onFail = true))
+        if (!detectNfcStatus(showToastOnFail = true, openSettingsNFC_onFail = true))
             return
 
-        CieIDSdk.qrCodeUrlScanned = contents
+        variables.qrCodeUrlScanned = contents
 
         val intent = Intent(this, QrScannedActivity::class.java)
         startActivity(intent)

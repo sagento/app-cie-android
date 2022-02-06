@@ -1,8 +1,8 @@
 package it.app.cie.activity.pin
 
-import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
+import android.content.DialogInterface
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
@@ -10,24 +10,21 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import it.app.cie.R
 import it.app.cie.lib.utils
-import it.ipzs.cieidsdk.common.CieIDSdk
+import it.ipzs.cieidsdk.util.ActivityInfo
+import it.ipzs.cieidsdk.util.ActivityType
 import it.ipzs.cieidsdk.util.CieIDSdkLogger
+import it.ipzs.cieidsdk.util.variables
+import it.ipzs.cieidsdk.util.variables.Companion.rubrica
 import java.io.File
 
 
 class askPinActivity : AppCompatActivity() {
 
-    companion object {
-
-
-        @SuppressLint("StaticFieldLeak")
-        var context: Context? = null
-        var rubrica: HashMap<String, String>? = null
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_ask_pin)
+        variables.activityList.add(ActivityInfo(this, ActivityType.PIN, this))
 
         val button: Button = findViewById(R.id.button_askpin_continua)
         button.setOnClickListener {
@@ -45,14 +42,32 @@ class askPinActivity : AppCompatActivity() {
     }
 
     private fun svuotaRubrica() {
-        try {
-            val file = File(this.filesDir, utils.filename_rubrica)
-            file.delete()
-        } catch (e: Exception) {
-            CieIDSdkLogger.log(e, this)
-        }
 
-        rubrica = null
+        val dialogClickListener =
+            DialogInterface.OnClickListener { dialog, which ->
+                when (which) {
+                    DialogInterface.BUTTON_POSITIVE -> {
+
+                        try {
+                            val file = File(this.filesDir, utils.filename_rubrica)
+                            file.delete()
+                        } catch (e: Exception) {
+                            CieIDSdkLogger.log(e, true)
+                        }
+
+                        rubrica = null
+
+                    }
+                    DialogInterface.BUTTON_NEGATIVE -> {}
+                }
+            }
+
+        val builder = AlertDialog.Builder(this)
+        builder.setMessage("Sei sicuro di svuotare la rubrica?")
+            .setPositiveButton("Sì", dialogClickListener)
+            .setNegativeButton("No", dialogClickListener).show()
+
+
     }
 
     private fun salvaRubrica() {
@@ -70,20 +85,21 @@ class askPinActivity : AppCompatActivity() {
 
         try {
             val filename = utils.filename_rubrica
-            context?.openFileOutput(filename, Context.MODE_PRIVATE).use {
+            variables.activityList.last().context.openFileOutput(filename, Context.MODE_PRIVATE)
+                .use {
 
-                if (it != null) {
-                    val whatToWrite = getWhatToWrite()
-                    for (line in whatToWrite) {
-                        it.write(line.toByteArray())
-                        it.write("\n".toByteArray())
+                    if (it != null) {
+                        val whatToWrite = getWhatToWrite()
+                        for (line in whatToWrite) {
+                            it.write(line.toByteArray())
+                            it.write("\n".toByteArray())
+                        }
                     }
+
                 }
 
-            }
-
         } catch (e: Exception) {
-            CieIDSdkLogger.log(e, this)
+            CieIDSdkLogger.log(e, true)
         }
     }
 
@@ -116,7 +132,7 @@ class askPinActivity : AppCompatActivity() {
                 }
             }
         } catch (e: Exception) {
-            CieIDSdkLogger.log(e, this)
+            CieIDSdkLogger.log(e, true)
         }
 
         val array: Array<String>? = rubrica?.keys?.toList()?.toTypedArray()
@@ -147,9 +163,9 @@ class askPinActivity : AppCompatActivity() {
         val textEdit: EditText = findViewById(R.id.editTextNumber_pin)
         val value = textEdit.text?.toString()
         if (value != null && value.length == 8) {
-            CieIDSdk.pin = value
+            variables.ciePin = value
 
-
+            variables.activityList.removeLast()
             setResult(Activity.RESULT_OK)
             this.finish()
         }

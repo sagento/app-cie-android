@@ -16,4 +16,5 @@
     <string name="salva">Salva</string>
     <string name="carica">Carica</string>
     <string name="svuota_rubrica">Svuota rubrica</string>
+    <string name="nfc_settings">NFC Settings</string>
 </resources>

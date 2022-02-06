@@ -2,7 +2,6 @@ package it.app.cie.activity.webView
 
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.View.GONE
@@ -10,31 +9,25 @@ import android.view.View.VISIBLE
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Button
-import android.widget.TextView
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import it.app.cie.R
 import it.app.cie.activity.menu.MenuActivity
-import it.app.cie.lib.CallbackCie
 import it.app.cie.lib.utils
-import it.ipzs.cieidsdk.common.CieIDSdk
-import it.ipzs.cieidsdk.common.CieIDSdk.startNfcAndDoActionOnSuccess
-import it.ipzs.cieidsdk.common.valuesPassed
-import it.ipzs.cieidsdk.nfc.common.nfcCore.detectNfcStatus
-import it.ipzs.cieidsdk.nfc.common.nfcCore.startNFCListening
-import it.ipzs.cieidsdk.nfc.common.nfcCore.stopNFCListening
+import it.ipzs.cieidsdk.nfc.common.nfcCore.Companion.detectNfcStatus
+import it.ipzs.cieidsdk.util.ActivityInfo
+import it.ipzs.cieidsdk.util.ActivityType
+import it.ipzs.cieidsdk.util.variables
+import it.ipzs.cieidsdk.util.variables.Companion.backButton
+import it.ipzs.cieidsdk.util.variables.Companion.homeButton
+import it.ipzs.cieidsdk.util.variables.Companion.textWebView
+import it.ipzs.cieidsdk.util.variables.Companion.webView
 
 
 class WebViewActivity : AppCompatActivity() {
 
-    lateinit var webView: WebView
-    lateinit var text: TextView
-    lateinit var homeButton: Button
-    lateinit var backButton: Button
-    lateinit var context: Context
-    lateinit var activity: AppCompatActivity
 
     private var homepage = "https://www.google.it/"
 
@@ -42,12 +35,13 @@ class WebViewActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_webview)
+        variables.activityList.add(ActivityInfo(this, ActivityType.NFC, this))
+
+
         webView = findViewById(R.id.webview1)
-        text = findViewById(R.id.textView)
+        textWebView = findViewById(R.id.textView)
         homeButton = findViewById(R.id.homebutton_id)
         backButton = findViewById(R.id.backbutton_id)
-        context = this
-        activity = this
 
 
         val buttonBackToMenu: Button = findViewById(R.id.button_webview_backtomenu)
@@ -67,7 +61,7 @@ class WebViewActivity : AppCompatActivity() {
             allowUniversalAccessFromFileURLs = false
         }
 
-        detectNfcStatus(this, this, showToastOnFail = true, openSettingsNFC_onFail = true)
+        detectNfcStatus(showToastOnFail = true, openSettingsNFC_onFail = true)
 
 
         //inserire url service provider
@@ -76,7 +70,7 @@ class WebViewActivity : AppCompatActivity() {
         backButton.setOnClickListener { webView.goBack() }
         homeButton.setOnClickListener { webView.loadUrl(homepage) }
 
-        text.visibility = GONE
+        textWebView.visibility = GONE
 
         webView.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
@@ -84,24 +78,16 @@ class WebViewActivity : AppCompatActivity() {
                 if (url.toString().contains("OpenApp")) {
 
                     if (detectNfcStatus(
-                            context, activity,
+
                             showToastOnFail = true,
                             openSettingsNFC_onFail = true
                         )
                     ) {
 
                         //settare la url caricata dalla webview su /OpenApp
-                        CieIDSdk.setUrl(url.toString())
+                        variables.cieIdSdk.setUrl(url.toString())
 
-                        val callbackCie = CallbackCie(activity)
-                        callbackCie.backButton = backButton
-                        callbackCie.homeButton = homeButton
-                        callbackCie.webView = webView
-                        callbackCie.text = text
-
-                        val valuesPassed = valuesPassed(activity, context, callbackCie)
-
-                        utils.insertPin(valuesPassed, startForResult)
+                        utils.insertPin(startForResult)
                         return true
                     }
 
@@ -121,18 +107,13 @@ class WebViewActivity : AppCompatActivity() {
             if (result.resultCode == Activity.RESULT_OK) {
                 //  you will get result here in result.data
 
-                val callbackCie = CallbackCie(activity)
-                callbackCie.backButton = backButton
-                callbackCie.homeButton = homeButton
-                callbackCie.webView = webView
-                callbackCie.text = text
-                val valuesPassed = valuesPassed(activity, context, callbackCie)
+
                 webView.visibility = GONE
                 homeButton.visibility = GONE
                 backButton.visibility = GONE
-                text.visibility = VISIBLE
+                textWebView.visibility = VISIBLE
 
-                startNfcAndDoActionOnSuccess(valuesPassed)
+                variables.cieIdSdk.startNfcAndDoActionOnSuccess()
 
             }
 
@@ -142,14 +123,14 @@ class WebViewActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         //faccio partire l'ascolto dell'nfc
-        startNFCListening(this)
+        variables.nfcCore.startNFCListening()
     }
 
 
     override fun onPause() {
         super.onPause()
         //stop l'ascolto dell'nfc
-        stopNFCListening(this)
+        variables.nfcCore.stopNFCListening()
     }
 
 
