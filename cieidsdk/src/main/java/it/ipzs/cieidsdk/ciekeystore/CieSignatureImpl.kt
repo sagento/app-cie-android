@@ -1,12 +1,13 @@
 package it.ipzs.cieidsdk.ciekeystore
 
-import it.ipzs.cieidsdk.common.CieIDSdk
 import it.ipzs.cieidsdk.util.CieIDSdkLogger
+import it.ipzs.cieidsdk.util.variables
 import java.security.*
 
 
 internal open class CieSignatureImpl : SignatureSpi() {
     private var byteToSign: ByteArray = byteArrayOf()
+
 
     @Throws(InvalidKeyException::class)
     override fun engineInitVerify(publicKey: PublicKey) {
@@ -33,7 +34,7 @@ internal open class CieSignatureImpl : SignatureSpi() {
     @Throws(NullPointerException::class)
     override fun engineSign(): ByteArray {
 
-        return CieIDSdk.ias.sign(byteToSign)
+        return variables.ias.sign(byteToSign)
 
     }
 
@@ -52,7 +53,7 @@ internal open class CieSignatureImpl : SignatureSpi() {
 
     class None : CieSignatureImpl() {
         init {
-            CieIDSdkLogger.log("CieSignatureImpl NONE", null)
+            CieIDSdkLogger.log("CieSignatureImpl NONE", true)
         }
     }
 }
