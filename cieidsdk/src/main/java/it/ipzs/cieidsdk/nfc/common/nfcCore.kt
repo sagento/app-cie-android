@@ -14,75 +14,131 @@ import android.provider.Settings
 import android.widget.Toast
 import it.ipzs.cieidsdk.common.CieIDSdk
 import it.ipzs.cieidsdk.common.OperativeMode
-import it.ipzs.cieidsdk.common.valuesPassed
 import it.ipzs.cieidsdk.event.*
 import it.ipzs.cieidsdk.exceptions.BlockedPinException
 import it.ipzs.cieidsdk.exceptions.NoCieException
 import it.ipzs.cieidsdk.exceptions.PinInputNotValidException
 import it.ipzs.cieidsdk.exceptions.PinNotValidException
 import it.ipzs.cieidsdk.nfc.Ias
+import it.ipzs.cieidsdk.util.ActivityType
 import it.ipzs.cieidsdk.util.CieIDSdkLogger
+import it.ipzs.cieidsdk.util.variables
 
 @SuppressLint("StaticFieldLeak")
-object nfcCore : NfcAdapter.ReaderCallback {
+class nfcCore : NfcAdapter.ReaderCallback {
 
-    var valuePassed: valuesPassed? = null
-    var isNfcOn: Boolean = false
-    var activity: Activity? = null
-    var context: Context? = null
+    companion object {
+        /**
+         *  Return true if device has NFC supports
+         */
+        private fun hasFeatureNFC(): Boolean {
+            return variables.activityList.last().context.packageManager.hasSystemFeature(
+                PackageManager.FEATURE_NFC
+            )
+        }
+
+        /**
+         *  Return true if NFC is enabled on device
+         */
+        private fun isNFCEnabled(): Boolean {
+            val manager =
+                variables.activityList.last().context.getSystemService(Context.NFC_SERVICE) as NfcManager
+            val adapter = manager.defaultAdapter
+            val enabled = adapter?.isEnabled ?: false
+
+            return hasFeatureNFC() && enabled
+        }
+
+        /**
+        Open NFC Settings PAge
+         */
+        fun openNFCSettings() {
+            val activity = variables.activityList.last().activity
+            activity.startActivity(Intent(Settings.ACTION_NFC_SETTINGS))
+        }
+
+        fun detectNfcStatus(
+
+            showToastOnFail: Boolean,
+            openSettingsNFC_onFail: Boolean
+        ): Boolean {
+
+            return if (isNFCEnabled()) {
+                true
+            } else {
+                if (showToastOnFail) {
+                    Toast.makeText(
+                        variables.activityList.last().context, "NFC is off.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+
+                if (openSettingsNFC_onFail)
+                    openNFCSettings()
+
+                false
+            }
+        }
+    }
+
 
     override fun onTagDiscovered(tag: Tag?) {
+
+        val activity = variables.getActivity(ActivityType.NFC)
+
         try {
-            CieIDSdk.callback?.onEvent(Event(EventTag.ON_TAG_DISCOVERED))
+            variables.callback.onEvent(Event(EventTag.ON_TAG_DISCOVERED))
             val isoDep = IsoDep.get(tag)
             isoDep.timeout = CieIDSdk.isoDepTimeout
             isoDep.connect()
 
             if (isoDep.isExtendedLengthApduSupported) {
-                CieIDSdkLogger.log("isExtendedLengthApduSupported : true", null)
+                CieIDSdkLogger.log("isExtendedLengthApduSupported : true", false)
             } else {
-                CieIDSdkLogger.log("isExtendedLengthApduSupported : false", null)
-                CieIDSdk.callback?.onEvent(Event(EventSmartphone.EXTENDED_APDU_NOT_SUPPORTED))
+                CieIDSdkLogger.log("isExtendedLengthApduSupported : false", false)
+                variables.callback.onEvent(Event(EventSmartphone.EXTENDED_APDU_NOT_SUPPORTED))
                 return
             }
 
-            CieIDSdk.ias = Ias(isoDep)
+            variables.ias = Ias(isoDep)
 
-            val message = "Tag discovered. Mode: " + CieIDSdk.mode.toString()
-            CieIDSdkLogger.log(message, null)
+            val message = "Tag discovered. Mode: " + variables.mode.toString()
+            CieIDSdkLogger.log(message, true)
 
-            valuePassed?.getActivity()?.runOnUiThread {
-                CieIDSdk.textViewOtpResult?.text = message
+
+
+            activity?.runOnUiThread {
+                variables.textViewOtpResult?.text = message
             }
 
 
 
-            if (CieIDSdk.mode == OperativeMode.AUTH_IBRIDO) {
-                CieIDSdk.loginIbrido(context, activity)
-            } else if (CieIDSdk.mode == OperativeMode.AUTH_WEBVIEW) {
-                CieIDSdk.callWebView(activity)
+            if (variables.mode == OperativeMode.AUTH_IBRIDO) {
+                variables.cieIdSdk.loginIbrido(activity)
+            } else if (variables.mode == OperativeMode.AUTH_WEBVIEW) {
+                variables.cieIdSdk.callWebView()
             }
 
 
         } catch (throwable: Throwable) {
-            CieIDSdkLogger.log(throwable.toString(), null)
+            CieIDSdkLogger.log(throwable.toString(), true)
 
-            valuePassed?.getActivity()?.runOnUiThread {
-                CieIDSdk.textViewOtpResult?.text = throwable.toString()
+            activity?.runOnUiThread {
+                variables.textViewOtpResult?.text = throwable.toString()
             }
 
             when (throwable) {
-                is PinNotValidException -> CieIDSdk.callback?.onEvent(
+                is PinNotValidException -> variables.callback.onEvent(
                     Event(
                         EventCard.ON_PIN_ERROR,
                         throwable.tentativi
                     )
                 )
-                is PinInputNotValidException -> CieIDSdk.callback?.onEvent(Event(EventError.PIN_INPUT_ERROR))
-                is BlockedPinException -> CieIDSdk.callback?.onEvent(Event(EventCard.ON_CARD_PIN_LOCKED))
-                is NoCieException -> CieIDSdk.callback?.onEvent(Event(EventTag.ON_TAG_DISCOVERED_NOT_CIE))
-                is TagLostException -> CieIDSdk.callback?.onEvent(Event(EventTag.ON_TAG_LOST))
-                else -> CieIDSdk.callback?.onError(throwable)
+                is PinInputNotValidException -> variables.callback.onEvent(Event(EventError.PIN_INPUT_ERROR))
+                is BlockedPinException -> variables.callback.onEvent(Event(EventCard.ON_CARD_PIN_LOCKED))
+                is NoCieException -> variables.callback.onEvent(Event(EventTag.ON_TAG_DISCOVERED_NOT_CIE))
+                is TagLostException -> variables.callback.onEvent(Event(EventTag.ON_TAG_LOST))
+                else -> variables.callback.onError(throwable)
             }
         }
     }
@@ -91,10 +147,12 @@ object nfcCore : NfcAdapter.ReaderCallback {
     /**
      * Call on Resume of NFC Activity
      */
-    fun startNFCListening(activity: Activity) {
+    fun startNFCListening() {
+        val activity: Activity = variables.getActivity(ActivityType.NFC) ?: return
+
         try {
-            if (!activity.isFinishing && isNfcOn) {
-                CieIDSdk.nfcAdapter?.enableReaderMode(
+            if (!(activity.isFinishing) && variables.isNfcOn) {
+                variables.nfcAdapter?.enableReaderMode(
                     activity,
                     this,
                     NfcAdapter.FLAG_READER_NFC_A or
@@ -103,7 +161,7 @@ object nfcCore : NfcAdapter.ReaderCallback {
                 )
             }
         } catch (throwable: Throwable) {
-            CieIDSdk.callback?.onEvent(Event(EventError.START_NFC_ERROR))
+            variables.callback.onEvent(Event(EventError.START_NFC_ERROR))
         }
 
     }
@@ -111,61 +169,14 @@ object nfcCore : NfcAdapter.ReaderCallback {
     /**
      * Call on Pause Of NFC Activity
      */
-    fun stopNFCListening(activity: Activity) {
+    fun stopNFCListening() {
+        val activity: Activity = variables.getActivity(ActivityType.NFC) ?: return
+
         try {
-            CieIDSdk.nfcAdapter?.disableReaderMode(activity)
+            variables.nfcAdapter?.disableReaderMode(activity)
 
         } catch (throwable: Throwable) {
-            CieIDSdk.callback?.onEvent(Event(EventError.STOP_NFC_ERROR))
-        }
-    }
-
-    /**
-     *  Return true if device has NFC supports
-     */
-    private fun hasFeatureNFC(context: Context): Boolean {
-        return context.packageManager.hasSystemFeature(PackageManager.FEATURE_NFC)
-    }
-
-    /**
-     *  Return true if NFC is enabled on device
-     */
-    private fun isNFCEnabled(context: Context): Boolean {
-        val manager = context.getSystemService(Context.NFC_SERVICE) as NfcManager
-        val adapter = manager.defaultAdapter
-        val enabled = adapter?.isEnabled ?: false
-
-        return hasFeatureNFC(context) && enabled
-    }
-
-    /**
-    Open NFC Settings PAge
-     */
-    private fun openNFCSettings(activity: Activity) {
-        activity.startActivity(Intent(Settings.ACTION_NFC_SETTINGS))
-    }
-
-    fun detectNfcStatus(
-        context: Context,
-        activity: Activity,
-        showToastOnFail: Boolean,
-        openSettingsNFC_onFail: Boolean
-    ): Boolean {
-
-        return if (isNFCEnabled(context)) {
-            true
-        } else {
-            if (showToastOnFail) {
-                Toast.makeText(
-                    context, "NFC is off.",
-                    Toast.LENGTH_LONG
-                ).show()
-            }
-
-            if (openSettingsNFC_onFail)
-                openNFCSettings(activity)
-
-            false
+            variables.callback.onEvent(Event(EventError.STOP_NFC_ERROR))
         }
     }
 
