@@ -1,6 +1,6 @@
 package it.ipzs.cieidsdk.ciekeystore
 
-import it.ipzs.cieidsdk.common.CieIDSdk
+import it.ipzs.cieidsdk.util.variables
 import java.security.AlgorithmParameters
 import java.security.Key
 import java.security.SecureRandom
@@ -8,6 +8,8 @@ import java.security.spec.AlgorithmParameterSpec
 import javax.crypto.CipherSpi
 
 internal class Cipher : CipherSpi() {
+
+
     override fun engineSetMode(mode: String?) {
     }
 
@@ -35,7 +37,7 @@ internal class Cipher : CipherSpi() {
     }
 
     override fun engineDoFinal(input: ByteArray?, inputOffset: Int, inputLen: Int): ByteArray {
-        return CieIDSdk.ias.sign(input!!)
+        return variables.ias.sign(input!!)
     }
 
     override fun engineDoFinal(
