@@ -11,16 +11,24 @@ class CieIDSdkLogger {
 
         private const val TAG: String = "CieIDSdkLogger"
 
-        fun log(message: String, activity: Activity?) {
+        fun log(message: String, toast: Boolean) {
             if (CieIDSdk.enableLog) {
-                log2(message, true, activity)
+                log2(message, toast)
 
             }
         }
 
-        private fun log2(message: String, toast: Boolean, activity: Activity?) {
+        private fun log2(message: String, toast: Boolean) {
             Log.d(TAG, message)
             println(message)
+
+            var activity: Activity? = null
+            try {
+                activity = variables.activityList.last().activity
+            } catch (e: Exception) {
+
+            }
+
             if (toast && activity != null) {
                 try {
                     activity.runOnUiThread {
@@ -33,21 +41,16 @@ class CieIDSdkLogger {
 
 
                 } catch (e: Exception) {
-                    log(e, activity, toast = false)
+                    log(e, false)
                 }
             }
         }
 
-        private fun log(message: Exception, activity: Activity?, toast: Boolean) {
-            if (CieIDSdk.enableLog && message.message != null) {
-                log2(message.message.toString(), toast, activity)
-            }
-        }
 
-        fun log(e: Throwable, activity: Activity?) {
+        fun log(e: Throwable, toast: Boolean) {
             if (e.message != null)
                 if (CieIDSdk.enableLog) {
-                    log2(e.message.toString(), true, activity)
+                    log2(e.message.toString(), toast)
                 }
         }
     }
