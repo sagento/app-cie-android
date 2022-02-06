@@ -12,6 +12,7 @@
         android:roundIcon="@mipmap/ic_launcher2_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Cie"
+        android:usesCleartextTraffic="true"
         tools:targetApi="s">
         <activity
             android:name=".activity.webView.WebViewActivity"
@@ -53,5 +54,8 @@
             android:windowSoftInputMode="stateAlwaysHidden" />
 
     </application>
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.NFC" />
 
 </manifest>
