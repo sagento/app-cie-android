@@ -22,6 +22,8 @@ import javax.net.ssl.X509TrustManager
 
 class NetworkClient(private val certificate: ByteArray) {
 
+
+
     init {
         val sslContext = SSLContext.getInstance("TLSv1.2")
         sslContext.init(null, null, null)
