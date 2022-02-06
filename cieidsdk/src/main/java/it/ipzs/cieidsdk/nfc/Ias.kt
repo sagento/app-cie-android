@@ -623,7 +623,7 @@ open class Ias constructor(private val isoDep: IsoDep) {
 
     @Throws(Exception::class)
     fun getIdServizi(): String {
-        CieIDSdkLogger.log("getIdServizi()", null)
+        CieIDSdkLogger.log("getIdServizi()", false)
         transmit("00a40204021001".hexStringToByteArray())
         val res = transmit("00b000000c".hexStringToByteArray())
         if (res.swShort != "9000") {
@@ -635,7 +635,7 @@ open class Ias constructor(private val isoDep: IsoDep) {
 
     @Throws(Exception::class)
     fun sign(dataToSign: ByteArray): ByteArray {
-        CieIDSdkLogger.log("sign()", null)
+        CieIDSdkLogger.log("sign()", false)
         val setKey = byteArrayOf(0x00, 0x22, 0x41, 0xA4.toByte())
         val val02 = byteArrayOf(0x02)
         val keyId = byteArrayOf(CIE_KEY_Sign_ID)
@@ -655,7 +655,7 @@ open class Ias constructor(private val isoDep: IsoDep) {
      */
     @Throws(Exception::class)
     private fun verifyPin(pin: String): Int {
-        CieIDSdkLogger.log("verifyPin()", null)
+        CieIDSdkLogger.log("verifyPin()", false)
         if (pin.length != 8) {
             throw PinInputNotValidException()
         }
@@ -678,7 +678,7 @@ open class Ias constructor(private val isoDep: IsoDep) {
      */
     @Throws(Exception::class)
     private fun dApp() {
-        CieIDSdkLogger.log("dApp()", null)
+        CieIDSdkLogger.log("dApp()", false)
         val psoVerifyAlgo = byteArrayOf(0x41)
         val shaOID: Byte = 0x04
         val shaSize = 32
@@ -831,7 +831,7 @@ open class Ias constructor(private val isoDep: IsoDep) {
      */
     @Throws(Exception::class)
     fun readCertCie(): ByteArray {
-        CieIDSdkLogger.log("readCie()", null)
+        CieIDSdkLogger.log("readCie()", false)
         //selectAidCie()
         return readFileSM(0x1003)
     }
@@ -842,7 +842,7 @@ open class Ias constructor(private val isoDep: IsoDep) {
      */
     @Throws(Exception::class)
     private fun dhKeyExchange() {
-        CieIDSdkLogger.log("dhKeyExchange()", null)
+        CieIDSdkLogger.log("dhKeyExchange()", false)
         var dh_prKey: ByteArray
         do {
             dh_prKey = AppUtil.getRandomByte(dh_q.size)
@@ -887,7 +887,7 @@ open class Ias constructor(private val isoDep: IsoDep) {
      */
     @Throws(Exception::class)
     private fun initExtAuthKeyParam() {
-        CieIDSdkLogger.log("initExtAuthParam()", null)
+        CieIDSdkLogger.log("initExtAuthParam()", false)
         //selectAidCie()
         val getKeyDoup = byteArrayOf(0, 0xcb.toByte(), 0x3f, 0xff.toByte())
         val getKeyDuopData = byteArrayOf(
@@ -1177,7 +1177,7 @@ open class Ias constructor(private val isoDep: IsoDep) {
      */
     @Throws(Exception::class)
     private fun initDHParam() {
-        CieIDSdkLogger.log("initDHParam()", null)
+        CieIDSdkLogger.log("initDHParam()", false)
         //selectAidCie()
         val getDHDoup = byteArrayOf(0, 0xcb.toByte(), 0x3f, 0xff.toByte())
         val getDHDuopData_g = byteArrayOf(
@@ -1239,7 +1239,7 @@ open class Ias constructor(private val isoDep: IsoDep) {
      */
     @Throws(Exception::class)
     private fun readDappPubKey() {
-        CieIDSdkLogger.log("readDappPubKey()", null)
+        CieIDSdkLogger.log("readDappPubKey()", false)
         val dappKey: ByteArray = readFile(0x1004)
         dappModule = byteArrayOf()
         if (this.dappPubKey.isNotEmpty())
@@ -1259,7 +1259,7 @@ open class Ias constructor(private val isoDep: IsoDep) {
 
     @Throws(Exception::class)
     private fun selectAidCie() {
-        CieIDSdkLogger.log("selectAidCie()", null)
+        CieIDSdkLogger.log("selectAidCie()", false)
         val selectCie = byteArrayOf(0x00, 0xa4.toByte(), 0x04, 0x0c)
         sendApdu(selectCie, CIE_AID, null)
     }
@@ -1270,7 +1270,7 @@ open class Ias constructor(private val isoDep: IsoDep) {
      */
     @Throws(Exception::class)
     private fun selectAidIas() {
-        CieIDSdkLogger.log("selectAidIas()", null)
+        CieIDSdkLogger.log("selectAidIas()", false)
         val selectMF = byteArrayOf(0x00, 0xa4.toByte(), 0x04, 0x0c)
         sendApdu(selectMF, IAS_AID, null)
     }
@@ -1705,28 +1705,39 @@ open class Ias constructor(private val isoDep: IsoDep) {
 
     @Throws(Exception::class)
     private fun transmit(apdu: ByteArray): ApduResponse {
-        CieIDSdkLogger.log("APDU: " + AppUtil.bytesToHex(apdu), null)
+        CieIDSdkLogger.log("APDU: " + AppUtil.bytesToHex(apdu), false)
         val resp = ApduResponse(isoDep.transceive(apdu))
 
-        CieIDSdkLogger.log("RESPONSE: " + AppUtil.bytesToHex(resp.response), null)
-        CieIDSdkLogger.log("SW: " + AppUtil.bytesToHex(resp.swByte), null)
+        CieIDSdkLogger.log("RESPONSE: " + AppUtil.bytesToHex(resp.response), false)
+        CieIDSdkLogger.log("SW: " + AppUtil.bytesToHex(resp.swByte), false)
         return resp
     }
 
     fun startKeepAlive() {
         val id = 0x1003
         Thread {
-            while (rlSign.tryLock()) {
-                try {
-                    sendApduSM(
-                        byteArrayOf(0x00, 0xa4.toByte(), 0x02, 0x04),
-                        byteArrayOf(HIBYTE(id), LOBYTE(id)),
-                        null
-                    )
-                } finally {
-                    rlSign.unlock()
+            try {
+                while (rlSign.tryLock()) {
+                    try {
+                        sendApduSM(
+                            byteArrayOf(0x00, 0xa4.toByte(), 0x02, 0x04),
+                            byteArrayOf(HIBYTE(id), LOBYTE(id)),
+                            null
+                        )
+                    } finally {
+                        rlSign.unlock()
+                    }
+                    Thread.sleep(10)
                 }
-                Thread.sleep(10)
+            } catch (e: Exception) {
+
+                CieIDSdkLogger.log(e, false)
+
+                try {
+                    rlSign.unlock()
+                } catch (e2: Exception) {
+
+                }
             }
         }.start()
     }
