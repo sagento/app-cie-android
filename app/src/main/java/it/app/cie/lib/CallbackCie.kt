@@ -6,6 +6,7 @@ import it.ipzs.cieidsdk.common.Callback
 import it.ipzs.cieidsdk.common.OperativeMode
 import it.ipzs.cieidsdk.event.Event
 import it.ipzs.cieidsdk.util.CieIDSdkLogger
+import it.ipzs.cieidsdk.util.utils.Companion.updateText
 import it.ipzs.cieidsdk.util.variables
 import it.ipzs.cieidsdk.util.variables.Companion.backButton
 import it.ipzs.cieidsdk.util.variables.Companion.homeButton
@@ -19,12 +20,16 @@ class CallbackCie : Callback {
     override fun onEvent(event: Event) {
         CieIDSdkLogger.log("onEvent: $event", false)
         val activity = variables.activityList.last().activity
-        activity.runOnUiThread {
-            if (event.attempts == 0) {
-                textWebView.text = "EVENT : $event"
-            } else {
-                textWebView.text = "EVENT : $event\nTentativi : ${event.attempts}"
-            }
+        val toSend: String = if (event.attempts == 0 || event.attempts == null) {
+            "EVENT : $event"
+        } else {
+            "EVENT : $event\nTentativi : ${event.attempts}"
+        }
+
+        when (variables.mode) {
+            OperativeMode.AUTH_IBRIDO -> updateText(variables.textViewOtpResult, toSend, activity)
+            OperativeMode.AUTH_WEBVIEW -> updateText(textWebView, toSend, activity)
+            else -> {}
         }
 
 
@@ -33,24 +38,39 @@ class CallbackCie : Callback {
     @SuppressLint("SetTextI18n")
     override fun onError(error: Throwable) {
         if (error.localizedMessage != null) {
-            CieIDSdkLogger.log("onError: " + error.localizedMessage, true)
+            val toSend = "onError: " + error.localizedMessage
+            CieIDSdkLogger.log(toSend, true)
             val activity = variables.activityList.last().activity
-            activity.runOnUiThread {
-                textWebView.text = "ERROR : $error.localizedMessage"
+
+            when (variables.mode) {
+                OperativeMode.AUTH_IBRIDO -> updateText(
+                    variables.textViewOtpResult,
+                    toSend,
+                    activity
+                )
+                OperativeMode.AUTH_WEBVIEW -> updateText(textWebView, toSend, activity)
+                else -> {}
             }
         }
     }
 
     override fun onSuccess(url: String) {
         //rimostro la webview e gli passo la url da caricare
-        webView.visibility = View.VISIBLE
-        textWebView.visibility = View.GONE
-        homeButton.visibility = View.VISIBLE
-        backButton.visibility = View.VISIBLE
 
+        try {
+            webView.visibility = View.VISIBLE
+            textWebView.visibility = View.GONE
+            homeButton.visibility = View.VISIBLE
+            backButton.visibility = View.VISIBLE
+        } catch (e: Exception) {
 
-        if (variables.mode == OperativeMode.AUTH_WEBVIEW)
-            webView.loadUrl(url)
+        }
 
+        try {
+            if (variables.mode == OperativeMode.AUTH_WEBVIEW)
+                webView.loadUrl(url)
+        } catch (e: Exception) {
+
+        }
     }
 }

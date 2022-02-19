@@ -273,7 +273,13 @@ class CieIDSdk {
 
                         try {
                             codice = r.split(":")[1]
-                            textViewOtpResult?.text = codice
+
+                            it.ipzs.cieidsdk.util.utils.updateText(
+                                textViewOtpResult,
+                                codice,
+                                activity
+                            )
+
                             variables.isNfcOn = false
                             if (activity != null) {
                                 variables.nfcCore.stopNFCListening()

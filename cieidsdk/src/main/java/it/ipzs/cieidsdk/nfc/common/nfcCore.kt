@@ -107,9 +107,8 @@ class nfcCore : NfcAdapter.ReaderCallback {
 
 
 
-            activity?.runOnUiThread {
-                variables.textViewOtpResult?.text = message
-            }
+            it.ipzs.cieidsdk.util.utils.updateText(variables.textViewOtpResult, message, activity)
+
 
 
 
@@ -123,9 +122,11 @@ class nfcCore : NfcAdapter.ReaderCallback {
         } catch (throwable: Throwable) {
             CieIDSdkLogger.log(throwable.toString(), true)
 
-            activity?.runOnUiThread {
-                variables.textViewOtpResult?.text = throwable.toString()
-            }
+            it.ipzs.cieidsdk.util.utils.updateText(
+                variables.textViewOtpResult,
+                throwable.toString(),
+                activity
+            )
 
             when (throwable) {
                 is PinNotValidException -> variables.callback.onEvent(
