@@ -18,4 +18,4 @@ Librerie open source usate:
 
 ### Download
 
-Il download di quest'app è sconsigliato. Per chi volesse proseguire: [link](https://github.com/sagento/app-cie-android/releases)
+Il download di quest'app è sconsigliato. Per chi volesse proseguire: [link](https://github.com/sagento/app-cie-android/releases/download/latest/app-debug.apk)
